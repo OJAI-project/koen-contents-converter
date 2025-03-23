@@ -1,0 +1,267 @@
+document.addEventListener('DOMContentLoaded', () => {
+    const audioFileInput = document.getElementById('audioFile');
+    const convertBtn = document.getElementById('convertBtn');
+    const translateBtn = document.getElementById('translateBtn');
+    const enhanceBtn = document.getElementById('enhanceBtn');
+    const generateAudioBtn = document.getElementById('generateAudioBtn');
+    const downloadBtn = document.getElementById('downloadBtn');
+    const resultText = document.getElementById('resultText');
+    const translatedText = document.getElementById('translatedText');
+    const enhancedText = document.getElementById('enhancedText');
+    const audioContainer = document.getElementById('audioContainer');
+    const audioPlayer = document.getElementById('audioPlayer');
+
+    let selectedFile = null;
+    let currentAudioUrl = null;
+
+    audioFileInput.addEventListener('change', (e) => {
+        selectedFile = e.target.files[0];
+        if (selectedFile) {
+            convertBtn.disabled = false;
+        }
+    });
+
+    convertBtn.addEventListener('click', async () => {
+        if (!selectedFile) {
+            showError('Please select an audio file.');
+            return;
+        }
+
+        try {
+            convertBtn.disabled = true;
+            translateBtn.disabled = true;
+            enhanceBtn.disabled = true;
+            generateAudioBtn.disabled = true;
+            convertBtn.textContent = 'Converting...';
+            resultText.value = 'Converting speech to text...';
+            resultText.disabled = true;
+            translatedText.value = '';
+            enhancedText.value = '';
+            audioContainer.classList.remove('show');
+
+            const formData = new FormData();
+            formData.append('file', selectedFile);
+
+            const response = await fetch('/convert', {
+                method: 'POST',
+                body: formData
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.details || `Server error: ${response.status}`);
+            }
+
+            const data = await response.json();
+            resultText.value = data.text;
+            resultText.disabled = false;
+            translateBtn.disabled = false;
+            resultText.focus();
+            resultText.setSelectionRange(0, 0);
+
+        } catch (error) {
+            showError(`Error occurred: ${error.message}`);
+            resultText.value = '';
+            resultText.disabled = false;
+            translateBtn.disabled = true;
+            enhanceBtn.disabled = true;
+            generateAudioBtn.disabled = true;
+        } finally {
+            convertBtn.disabled = false;
+            convertBtn.textContent = 'Convert';
+            selectedFile = null;
+            audioFileInput.value = '';
+        }
+    });
+
+    translateBtn.addEventListener('click', async () => {
+        const koreanText = resultText.value.trim();
+        if (!koreanText) {
+            showError('Please provide Korean text to translate.');
+            return;
+        }
+
+        try {
+            translateBtn.disabled = true;
+            enhanceBtn.disabled = true;
+            generateAudioBtn.disabled = true;
+            translateBtn.textContent = 'Translating...';
+            translatedText.value = 'Translating...';
+            translatedText.disabled = true;
+            enhancedText.value = '';
+            audioContainer.classList.remove('show');
+
+            const response = await fetch('/translate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ text: koreanText })
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.details || `Server error: ${response.status}`);
+            }
+
+            const data = await response.json();
+            translatedText.value = data.translation;
+            translatedText.disabled = false;
+            enhanceBtn.disabled = false;
+            translatedText.focus();
+            translatedText.setSelectionRange(0, 0);
+
+        } catch (error) {
+            showError(`Translation error: ${error.message}`);
+            translatedText.value = '';
+            enhanceBtn.disabled = true;
+            generateAudioBtn.disabled = true;
+        } finally {
+            translateBtn.disabled = false;
+            translateBtn.textContent = 'Translate to English';
+            translatedText.disabled = false;
+        }
+    });
+
+    enhanceBtn.addEventListener('click', async () => {
+        const englishText = translatedText.value.trim();
+        if (!englishText) {
+            showError('Please provide English text to enhance.');
+            return;
+        }
+
+        try {
+            enhanceBtn.disabled = true;
+            generateAudioBtn.disabled = true;
+            enhanceBtn.textContent = 'Enhancing...';
+            enhancedText.value = 'Enhancing text for YouTube...';
+            enhancedText.disabled = true;
+            audioContainer.classList.remove('show');
+
+            const response = await fetch('/enhance', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ text: englishText })
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.details || `Server error: ${response.status}`);
+            }
+
+            const data = await response.json();
+            enhancedText.value = data.enhanced;
+            enhancedText.disabled = false;
+            generateAudioBtn.disabled = false;
+            enhancedText.focus();
+            enhancedText.setSelectionRange(0, 0);
+
+        } catch (error) {
+            showError(`Enhancement error: ${error.message}`);
+            enhancedText.value = '';
+            generateAudioBtn.disabled = true;
+        } finally {
+            enhanceBtn.disabled = false;
+            enhanceBtn.textContent = 'Enhance for YouTube';
+            enhancedText.disabled = false;
+        }
+    });
+
+    generateAudioBtn.addEventListener('click', async () => {
+        const text = enhancedText.value.trim();
+        if (!text) {
+            showError('Please provide text to convert to speech.');
+            return;
+        }
+
+        try {
+            generateAudioBtn.disabled = true;
+            generateAudioBtn.textContent = 'Generating Audio...';
+            audioContainer.classList.remove('show');
+
+            const selectedVoice = document.querySelector('input[name="voice"]:checked').value;
+
+            const response = await fetch('/tts', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    text: text,
+                    voice: selectedVoice
+                })
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.details || `Server error: ${response.status}`);
+            }
+
+            const data = await response.json();
+            currentAudioUrl = data.audioUrl;
+
+            audioPlayer.src = currentAudioUrl;
+            audioContainer.classList.add('show');
+            downloadBtn.onclick = () => {
+                const link = document.createElement('a');
+                link.href = currentAudioUrl;
+                link.download = data.filename;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            };
+
+        } catch (error) {
+            showError(`Audio generation error: ${error.message}`);
+            audioContainer.classList.remove('show');
+        } finally {
+            generateAudioBtn.disabled = false;
+            generateAudioBtn.textContent = 'Generate Audio';
+        }
+    });
+
+    // Make sure textareas are enabled when user clicks on them
+    resultText.addEventListener('click', () => {
+        if (resultText.value && resultText.value !== 'Converting speech to text...') {
+            resultText.disabled = false;
+        }
+    });
+
+    translatedText.addEventListener('click', () => {
+        if (translatedText.value && translatedText.value !== 'Translating...') {
+            translatedText.disabled = false;
+        }
+    });
+
+    enhancedText.addEventListener('click', () => {
+        if (enhancedText.value && enhancedText.value !== 'Enhancing text for YouTube...') {
+            enhancedText.disabled = false;
+        }
+    });
+
+    function showError(message) {
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'error';
+        errorDiv.textContent = message;
+
+        const existingError = document.querySelector('.error');
+        if (existingError) {
+            existingError.remove();
+        }
+
+        convertBtn.parentNode.insertBefore(errorDiv, convertBtn.nextSibling);
+        setTimeout(() => errorDiv.remove(), 5000);
+    }
+
+    // Initialize states
+    resultText.disabled = false;
+    translatedText.disabled = false;
+    enhancedText.disabled = false;
+    convertBtn.disabled = true;
+    translateBtn.disabled = true;
+    enhanceBtn.disabled = true;
+    generateAudioBtn.disabled = true;
+    audioContainer.classList.remove('show');
+});

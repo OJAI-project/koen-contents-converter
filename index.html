@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KoEn Contents Converter</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <div class="container">
+        <h1>KoEn Contents Converter</h1>
+        <div class="upload-section">
+            <input type="file" id="audioFile" accept="audio/*" class="file-input">
+            <label for="audioFile" class="file-label">Select Audio File</label>
+        </div>
+        <button id="convertBtn" class="convert-btn">Convert</button>
+        <div class="result-section">
+            <h2>Korean Text:</h2>
+            <textarea id="resultText" class="result-text" placeholder="Transcribed text will appear here..."
+                spellcheck="false"></textarea>
+            <button id="translateBtn" class="translate-btn">Translate to English</button>
+            <h2>English Translation:</h2>
+            <textarea id="translatedText" class="result-text" placeholder="English translation will appear here..."
+                spellcheck="false"></textarea>
+            <button id="enhanceBtn" class="enhance-btn">Enhance for YouTube</button>
+            <h2>YouTube-Ready Script:</h2>
+            <textarea id="enhancedText" class="result-text" placeholder="Enhanced script will appear here..."
+                spellcheck="false"></textarea>
+            <div class="voice-section">
+                <div class="voice-selection">
+                    <label class="voice-label">Select Voice:</label>
+                    <div class="voice-options">
+                        <input type="radio" id="alloy" name="voice" value="alloy" checked>
+                        <label for="alloy">Male (Alloy)</label>
+                        <input type="radio" id="nova" name="voice" value="nova">
+                        <label for="nova">Female (Nova)</label>
+                    </div>
+                </div>
+                <button id="generateAudioBtn" class="generate-audio-btn">Generate Audio</button>
+            </div>
+            <div id="audioContainer" class="audio-container">
+                <audio id="audioPlayer" controls class="audio-player"></audio>
+                <button id="downloadBtn" class="download-btn">Download Audio</button>
+            </div>
+        </div>
+    </div>
+    <script src="app.js"></script>
+</body>
+
+</html>

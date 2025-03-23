@@ -1,0 +1,40 @@
+# Environment variables
+.env
+
+# Dependencies
+node_modules/
+
+# Generated files
+server/uploads/
+server/audio/
+
+# macOS system files
+.DS_Store
+
+# Logs
+*.log
+npm-debug.log*
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache
+
+# Optional REPL history
+.node_repl_history
+
+# Output of 'npm pack'
+*.tgz
+
+# IDE specific files
+.idea
+.vscode
+*.swp
+*.swo
