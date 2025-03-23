@@ -8,12 +8,16 @@ import { dirname, join } from 'path';
 import fs from 'fs';
 import path from 'path';
 import FormData from 'form-data';
+import { TextToSpeechClient } from '@google-cloud/text-to-speech';
 
 // Load environment variables
 config();
 
 const app = express();
 const port = 3000;
+
+// Initialize Google Cloud TTS client
+const ttsClient = new TextToSpeechClient();
 
 // Configure CORS
 app.use(cors());
@@ -79,48 +83,48 @@ app.get('/health', (req, res) => {
     res.json({ status: 'ok' });
 });
 
-// Text to Speech endpoint
+// Text to Speech endpoint using Google Cloud TTS
 app.post('/tts', async (req, res) => {
     try {
-        if (!process.env.OPENAI_API_KEY) {
-            throw new Error('OpenAI API key not configured');
-        }
+        console.log('TTS Request:', req.body); // Debug log
 
         const { text, voice } = req.body;
         if (!text) {
             return res.status(400).json({ error: 'No text provided for TTS' });
         }
 
-        if (!voice || !['alloy', 'nova'].includes(voice)) {
+        if (!voice || !['orus', 'kore'].includes(voice)) {
             return res.status(400).json({ error: 'Invalid voice selection' });
         }
 
-        const response = await fetch('https://api.openai.com/v1/audio/speech', {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
-                'Content-Type': 'application/json'
+        // Configure the voice based on selection
+        const request = {
+            input: { text },
+            voice: {
+                languageCode: 'en-US',
+                name: voice === 'orus' ? 'en-US-Neural2-D' : 'en-US-Neural2-F',
+                model: 'chirp-3'
             },
-            body: JSON.stringify({
-                model: 'tts-1',
-                voice: voice,
-                input: text
-            })
-        });
+            audioConfig: {
+                audioEncoding: 'MP3',
+                pitch: 0,
+                speakingRate: 1
+            }
+        };
 
-        if (!response.ok) {
-            const errorData = await response.text();
-            console.error('OpenAI TTS API Error:', errorData);
-            throw new Error(`TTS API error: ${response.status}`);
-        }
+        console.log('TTS Request Config:', request); // Debug log
+
+        // Perform the text-to-speech request
+        const [response] = await ttsClient.synthesizeSpeech(request);
 
         // Generate unique filename
         const filename = `tts-${Date.now()}.mp3`;
         const filepath = join(audioDir, filename);
 
-        // Save the audio file
-        const buffer = await response.arrayBuffer();
-        fs.writeFileSync(filepath, Buffer.from(buffer));
+        // Write the audio content to file
+        fs.writeFileSync(filepath, response.audioContent);
+
+        console.log('Audio file created:', filepath); // Debug log
 
         // Return the audio file URL
         res.json({
@@ -132,7 +136,8 @@ app.post('/tts', async (req, res) => {
         console.error('TTS Error:', error);
         res.status(500).json({
             error: 'TTS error',
-            details: error.message
+            details: error.message,
+            stack: error.stack // Include stack trace for debugging
         });
     }
 });
@@ -336,7 +341,7 @@ app.use((err, req, res, next) => {
 // Start server
 app.listen(port, () => {
     console.log(`Server running at http://localhost:${port}`);
-    if (!process.env.OPENAI_API_KEY) {
-        console.warn('Warning: OpenAI API key not configured in .env file');
-    }
+    console.log('Environment check:');
+    console.log('- OpenAI API Key:', process.env.OPENAI_API_KEY ? 'Set' : 'Not set');
+    console.log('- Google Credentials:', process.env.GOOGLE_APPLICATION_CREDENTIALS ? 'Set' : 'Not set');
 });

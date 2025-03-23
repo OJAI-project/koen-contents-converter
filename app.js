@@ -182,6 +182,7 @@ document.addEventListener('DOMContentLoaded', () => {
             audioContainer.classList.remove('show');
 
             const selectedVoice = document.querySelector('input[name="voice"]:checked').value;
+            console.log('Selected voice:', selectedVoice); // Debug log
 
             const response = await fetch('/tts', {
                 method: 'POST',
