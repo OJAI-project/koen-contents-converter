@@ -42,7 +42,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const formData = new FormData();
             formData.append('file', selectedFile);
 
-            const response = await fetch('/convert', {
+            const response = await fetch('/api/convert', {
                 method: 'POST',
                 body: formData
             });
@@ -91,7 +91,7 @@ document.addEventListener('DOMContentLoaded', () => {
             enhancedText.value = '';
             audioContainer.classList.remove('show');
 
-            const response = await fetch('/translate', {
+            const response = await fetch('/api/translate', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -138,7 +138,7 @@ document.addEventListener('DOMContentLoaded', () => {
             enhancedText.disabled = true;
             audioContainer.classList.remove('show');
 
-            const response = await fetch('/enhance', {
+            const response = await fetch('/api/enhance', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -182,9 +182,8 @@ document.addEventListener('DOMContentLoaded', () => {
             audioContainer.classList.remove('show');
 
             const selectedVoice = document.querySelector('input[name="voice"]:checked').value;
-            console.log('Selected voice:', selectedVoice); // Debug log
 
-            const response = await fetch('/tts', {
+            const response = await fetch('/api/tts', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'

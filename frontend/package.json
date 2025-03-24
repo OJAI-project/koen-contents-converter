@@ -1,0 +1,14 @@
+{
+    "name": "korean-stt-frontend",
+    "version": "1.0.0",
+    "description": "Frontend for Korean Speech-to-Text converter",
+    "type": "module",
+    "scripts": {
+        "dev": "vite",
+        "build": "vite build",
+        "preview": "vite preview"
+    },
+    "dependencies": {
+        "vite": "^4.5.0"
+    }
+}

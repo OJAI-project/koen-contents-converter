@@ -2,61 +2,60 @@
 
 A comprehensive web application that converts Korean content to English, optimized for YouTube content creation.
 
-## Quick Start Guide
+## Deployment on Vercel
 
-### First Time Setup
-1. Install Node.js from https://nodejs.org/ (Required only once)
-2. Get an OpenAI API key from https://platform.openai.com/
-3. Set up Google Cloud:
-   - Create a project in Google Cloud Console
-   - Enable the Cloud Text-to-Speech API
-   - Create a service account and download credentials JSON
-   - Place the credentials file in the `server` folder
-4. Create a file named `.env` in the `server` folder using `.env.example` as template
-5. Add your API keys and credentials:
+1. Fork or clone this repository
+2. Create a new project on Vercel
+3. Connect your repository to Vercel
+4. Configure environment variables in Vercel:
+   - `OPENAI_API_KEY`: Your OpenAI API key
+   - `GOOGLE_APPLICATION_CREDENTIALS`: Base64 encoded content of your Google Cloud credentials JSON file
+
+   To encode your Google Cloud credentials:
+   ```bash
+   base64 -i path/to/your/credentials.json
+   ```
+   Copy the output and paste it in the Vercel environment variable.
+
+5. Deploy! Vercel will automatically build and deploy your application.
+
+## Local Development
+
+1. Install dependencies:
+   ```bash
+   # Install frontend dependencies
+   cd frontend
+   npm install
+
+   # Install backend dependencies
+   cd ../api
+   npm install
+   ```
+
+2. Create `.env` file in the api directory:
    ```
    OPENAI_API_KEY=your_openai_api_key_here
    GOOGLE_APPLICATION_CREDENTIALS=path/to/your/google-credentials.json
    ```
 
-### Running the Application
+3. Start the development server:
+   ```bash
+   # Start frontend
+   cd frontend
+   npm run dev
 
-#### On Windows:
-- Double-click `start-app.bat`
-- The application will open in your default browser automatically
+   # In another terminal, start backend
+   cd api
+   npm start
+   ```
 
-#### On Mac/Linux:
-- Double-click `start-app.sh`
-  - If it doesn't work, open Terminal and run:
-    ```bash
-    chmod +x start-app.sh
-    ./start-app.sh
-    ```
-- The application will open in your default browser automatically
+## Features
 
-### Using the Application
-
-1. Upload Korean Audio:
-   - Click "Select Audio File"
-   - Choose your Korean audio file
-   - Click "Convert"
-
-2. Get English Translation:
-   - Wait for Korean text to appear
-   - Click "Translate to English"
-   - Edit the translation if needed
-
-3. Create YouTube Script:
-   - Click "Enhance for YouTube"
-   - The text will be optimized for YouTube
-
-4. Generate Audio:
-   - Choose voice type:
-     * Male (Orus) - Chirp 3 model
-     * Female (Kore) - Chirp 3 model
-   - Click "Generate Audio"
-   - Use the player to preview
-   - Click "Download Audio" to save
+- Korean speech-to-text conversion using OpenAI Whisper
+- Korean to English translation using GPT-3.5
+- YouTube-optimized content enhancement
+- High-quality text-to-speech using Google Cloud Chirp 3 model
+- Choice of male (Orus) or female (Kore) voices
 
 ## Supported File Types
 - MP3
@@ -72,53 +71,22 @@ Using Google Cloud Text-to-Speech Chirp 3 model:
 
 ## Troubleshooting
 
-If you see any errors:
-1. Check that Node.js is installed
-2. Verify your OpenAI API key in the `.env` file
-3. Verify your Google Cloud credentials:
-   - Make sure the credentials file path is correct in `.env`
-   - Ensure the service account has TTS permissions
-   - Check that the Cloud Text-to-Speech API is enabled
-4. Make sure you have an internet connection
-5. Check that no other application is using port 3000
+1. Check your API keys and credentials:
+   - Verify OpenAI API key
+   - Ensure Google Cloud credentials are properly configured
+   - Check that required APIs are enabled in Google Cloud Console
 
-## For Developers
+2. File upload issues:
+   - Maximum file size: 25MB
+   - Ensure file format is supported
+   - Check network connection
 
-### Manual Installation
-```bash
-cd server
-npm install
-```
-
-### Running Manually
-```bash
-cd server
-npm start
-```
-
-### Project Structure
-- `index.html`: Main application interface
-- `app.js`: Frontend JavaScript
-- `styles.css`: Application styling
-- `server/`: Backend server files
-  - `.env`: API key configuration
-  - `.env.example`: Template for environment variables
-  - `google-credentials.json`: Google Cloud service account key
-- `start-app.bat`: Windows startup script
-- `start-app.sh`: Mac/Linux startup script
-
-## Notes
-- Maximum file size: 25MB
-- Internet connection required
-- All text boxes are editable
-- Generated audio files are temporarily stored
-- Uses OpenAI for transcription and text enhancement
-- Uses Google Cloud Chirp 3 for high-quality TTS
-- Voice selection:
-  * Orus: Natural male voice with clear articulation
-  * Kore: Natural female voice with professional tone
+3. Audio generation issues:
+   - Verify Google Cloud Text-to-Speech API is enabled
+   - Check quota limits
+   - Ensure text input is not empty
 
 ## Security Notes
 - Keep your API keys and credentials secure
-- Never commit `.env` or credential files to version control
-- The `.gitignore` file is configured to exclude sensitive files
+- Never commit sensitive files to version control
+- Use environment variables for all sensitive data
