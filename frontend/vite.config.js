@@ -10,19 +10,14 @@ export default defineConfig({
     build: {
         outDir: 'dist',
         sourcemap: true,
-        rollupOptions: {
-            output: {
-                manualChunks: undefined
-            }
-        }
+        assetsDir: 'assets',
+        emptyOutDir: true
     },
-    base: './',
     server: {
         proxy: {
             '/api': {
                 target: process.env.VITE_API_URL || 'http://localhost:3000',
-                changeOrigin: true,
-                rewrite: (path) => path.replace(/^\/api/, '')
+                changeOrigin: true
             }
         }
     }
