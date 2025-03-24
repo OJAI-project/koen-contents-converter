@@ -1,0 +1,17 @@
+{
+    "name": "korean-stt",
+    "version": "1.0.0",
+    "private": true,
+    "workspaces": [
+        "frontend",
+        "api"
+    ],
+    "scripts": {
+        "build": "cd frontend && npm run build",
+        "dev": "concurrently \"cd frontend && npm run dev\" \"cd api && npm run dev\"",
+        "install": "cd frontend && npm install && cd ../api && npm install"
+    },
+    "devDependencies": {
+        "concurrently": "^8.0.0"
+    }
+}
