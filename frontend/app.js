@@ -1,25 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const audioFileInput = document.getElementById('audioFile');
-    const convertBtn = document.getElementById('convertBtn');
-    const translateBtn = document.getElementById('translateBtn');
-    const enhanceBtn = document.getElementById('enhanceBtn');
-    const generateAudioBtn = document.getElementById('generateAudioBtn');
-    const downloadBtn = document.getElementById('downloadBtn');
-    const resultText = document.getElementById('resultText');
-    const translatedText = document.getElementById('translatedText');
-    const enhancedText = document.getElementById('enhancedText');
-    const audioContainer = document.getElementById('audioContainer');
-    const audioPlayer = document.getElementById('audioPlayer');
-
-    let selectedFile = null;
-    let currentAudioUrl = null;
-
-    audioFileInput.addEventListener('change', (e) => {
-        selectedFile = e.target.files[0];
-        if (selectedFile) {
-            convertBtn.disabled = false;
-        }
-    });
+    // ... (keep all the variable declarations and event listeners the same until the fetch calls)
 
     convertBtn.addEventListener('click', async () => {
         if (!selectedFile) {
@@ -49,7 +29,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 size: selectedFile.size
             });
 
-            const response = await fetch('/api/convert', {
+            // Use the full path for the API endpoint
+            const apiUrl = window.location.origin + '/api/convert';
+            console.log('API URL:', apiUrl);
+
+            const response = await fetch(apiUrl, {
                 method: 'POST',
                 body: formData
             });
@@ -100,6 +84,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // Update other API calls similarly
     translateBtn.addEventListener('click', async () => {
         const koreanText = resultText.value.trim();
         if (!koreanText) {
@@ -117,7 +102,8 @@ document.addEventListener('DOMContentLoaded', () => {
             enhancedText.value = '';
             audioContainer.classList.remove('show');
 
-            const response = await fetch('/api/translate', {
+            const apiUrl = window.location.origin + '/api/translate';
+            const response = await fetch(apiUrl, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -164,7 +150,8 @@ document.addEventListener('DOMContentLoaded', () => {
             enhancedText.disabled = true;
             audioContainer.classList.remove('show');
 
-            const response = await fetch('/api/enhance', {
+            const apiUrl = window.location.origin + '/api/enhance';
+            const response = await fetch(apiUrl, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -209,7 +196,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const selectedVoice = document.querySelector('input[name="voice"]:checked').value;
 
-            const response = await fetch('/api/tts', {
+            const apiUrl = window.location.origin + '/api/tts';
+            const response = await fetch(apiUrl, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -250,46 +238,5 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Make sure textareas are enabled when user clicks on them
-    resultText.addEventListener('click', () => {
-        if (resultText.value && resultText.value !== 'Converting speech to text...') {
-            resultText.disabled = false;
-        }
-    });
-
-    translatedText.addEventListener('click', () => {
-        if (translatedText.value && translatedText.value !== 'Translating...') {
-            translatedText.disabled = false;
-        }
-    });
-
-    enhancedText.addEventListener('click', () => {
-        if (enhancedText.value && enhancedText.value !== 'Enhancing text for YouTube...') {
-            enhancedText.disabled = false;
-        }
-    });
-
-    function showError(message) {
-        const errorDiv = document.createElement('div');
-        errorDiv.className = 'error';
-        errorDiv.textContent = message;
-
-        const existingError = document.querySelector('.error');
-        if (existingError) {
-            existingError.remove();
-        }
-
-        convertBtn.parentNode.insertBefore(errorDiv, convertBtn.nextSibling);
-        setTimeout(() => errorDiv.remove(), 5000);
-    }
-
-    // Initialize states
-    resultText.disabled = false;
-    translatedText.disabled = false;
-    enhancedText.disabled = false;
-    convertBtn.disabled = true;
-    translateBtn.disabled = true;
-    enhanceBtn.disabled = true;
-    generateAudioBtn.disabled = true;
-    audioContainer.classList.remove('show');
+    // Keep the rest of the code (textarea event listeners, showError function, and state initialization) the same
 });
