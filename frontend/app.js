@@ -1,6 +1,30 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // ... (keep all the variable declarations and event listeners the same until the fetch calls)
+    // Get DOM elements
+    const audioFileInput = document.getElementById('audioFile');
+    const convertBtn = document.getElementById('convertBtn');
+    const translateBtn = document.getElementById('translateBtn');
+    const enhanceBtn = document.getElementById('enhanceBtn');
+    const generateAudioBtn = document.getElementById('generateAudioBtn');
+    const downloadBtn = document.getElementById('downloadBtn');
+    const resultText = document.getElementById('resultText');
+    const translatedText = document.getElementById('translatedText');
+    const enhancedText = document.getElementById('enhancedText');
+    const audioContainer = document.getElementById('audioContainer');
+    const audioPlayer = document.getElementById('audioPlayer');
 
+    // Initialize variables
+    let selectedFile = null;
+    let currentAudioUrl = null;
+
+    // File selection handler
+    audioFileInput.addEventListener('change', (e) => {
+        selectedFile = e.target.files[0];
+        if (selectedFile) {
+            convertBtn.disabled = false;
+        }
+    });
+
+    // Convert button handler
     convertBtn.addEventListener('click', async () => {
         if (!selectedFile) {
             showError('Please select an audio file.');
@@ -84,7 +108,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Update other API calls similarly
+    // Translate button handler
     translateBtn.addEventListener('click', async () => {
         const koreanText = resultText.value.trim();
         if (!koreanText) {
@@ -135,6 +159,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // Enhance button handler
     enhanceBtn.addEventListener('click', async () => {
         const englishText = translatedText.value.trim();
         if (!englishText) {
@@ -182,6 +207,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // Generate Audio button handler
     generateAudioBtn.addEventListener('click', async () => {
         const text = enhancedText.value.trim();
         if (!text) {
@@ -238,5 +264,47 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Keep the rest of the code (textarea event listeners, showError function, and state initialization) the same
+    // Textarea click handlers
+    resultText.addEventListener('click', () => {
+        if (resultText.value && resultText.value !== 'Converting speech to text...') {
+            resultText.disabled = false;
+        }
+    });
+
+    translatedText.addEventListener('click', () => {
+        if (translatedText.value && translatedText.value !== 'Translating...') {
+            translatedText.disabled = false;
+        }
+    });
+
+    enhancedText.addEventListener('click', () => {
+        if (enhancedText.value && enhancedText.value !== 'Enhancing text for YouTube...') {
+            enhancedText.disabled = false;
+        }
+    });
+
+    // Error display function
+    function showError(message) {
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'error';
+        errorDiv.textContent = message;
+
+        const existingError = document.querySelector('.error');
+        if (existingError) {
+            existingError.remove();
+        }
+
+        convertBtn.parentNode.insertBefore(errorDiv, convertBtn.nextSibling);
+        setTimeout(() => errorDiv.remove(), 5000);
+    }
+
+    // Initialize states
+    resultText.disabled = false;
+    translatedText.disabled = false;
+    enhancedText.disabled = false;
+    convertBtn.disabled = true;
+    translateBtn.disabled = true;
+    enhanceBtn.disabled = true;
+    generateAudioBtn.disabled = true;
+    audioContainer.classList.remove('show');
 });
