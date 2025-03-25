@@ -11,8 +11,14 @@ export default defineConfig({
         outDir: 'dist',
         sourcemap: true,
         assetsDir: 'assets',
-        emptyOutDir: true
+        emptyOutDir: true,
+        rollupOptions: {
+            output: {
+                manualChunks: undefined
+            }
+        }
     },
+    base: './',
     server: {
         proxy: {
             '/api': {
