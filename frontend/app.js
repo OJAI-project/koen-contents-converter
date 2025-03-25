@@ -42,17 +42,43 @@ document.addEventListener('DOMContentLoaded', () => {
             const formData = new FormData();
             formData.append('file', selectedFile);
 
+            // Log the file details for debugging
+            console.log('File being uploaded:', {
+                name: selectedFile.name,
+                type: selectedFile.type,
+                size: selectedFile.size
+            });
+
             const response = await fetch('/api/convert', {
                 method: 'POST',
                 body: formData
             });
 
+            // Log the response status and headers for debugging
+            console.log('Response status:', response.status);
+            console.log('Response headers:', response.headers);
+
             if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.details || `Server error: ${response.status}`);
+                const errorText = await response.text();
+                console.error('Error response:', errorText);
+                try {
+                    const errorData = JSON.parse(errorText);
+                    throw new Error(errorData.details || `Server error: ${response.status}`);
+                } catch (e) {
+                    throw new Error(`Server error: ${response.status} - ${errorText}`);
+                }
             }
 
-            const data = await response.json();
+            const responseText = await response.text();
+            console.log('Response text:', responseText);
+
+            let data;
+            try {
+                data = JSON.parse(responseText);
+            } catch (e) {
+                throw new Error('Invalid JSON response from server');
+            }
+
             resultText.value = data.text;
             resultText.disabled = false;
             translateBtn.disabled = false;
@@ -199,15 +225,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 throw new Error(errorData.details || `Server error: ${response.status}`);
             }
 
-            const data = await response.json();
-            currentAudioUrl = data.audioUrl;
-
-            audioPlayer.src = currentAudioUrl;
+            // Handle binary audio data
+            const blob = await response.blob();
+            const audioUrl = URL.createObjectURL(blob);
+            audioPlayer.src = audioUrl;
             audioContainer.classList.add('show');
+
+            // Set up download functionality
             downloadBtn.onclick = () => {
                 const link = document.createElement('a');
-                link.href = currentAudioUrl;
-                link.download = data.filename;
+                link.href = audioUrl;
+                link.download = `tts-${Date.now()}.mp3`;
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);

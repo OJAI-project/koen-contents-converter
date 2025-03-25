@@ -70,7 +70,10 @@ export default async function handler(req, res) {
 
 async function handleConvert(req, res) {
     if (!process.env.OPENAI_API_KEY) {
-        throw new Error('OpenAI API key not configured');
+        return res.status(500).json({
+            error: 'Server configuration error',
+            details: 'OpenAI API key not configured'
+        });
     }
 
     try {
@@ -78,8 +81,18 @@ async function handleConvert(req, res) {
         await runMiddleware(req, res, upload.single('file'));
 
         if (!req.file) {
-            return res.status(400).json({ error: 'No audio file provided' });
+            return res.status(400).json({
+                error: 'Bad request',
+                details: 'No audio file provided'
+            });
         }
+
+        // Log file details
+        console.log('Received file:', {
+            originalname: req.file.originalname,
+            mimetype: req.file.mimetype,
+            size: req.file.size
+        });
 
         // Create form data for OpenAI API
         const form = new FormData();
@@ -100,12 +113,32 @@ async function handleConvert(req, res) {
             body: form
         });
 
+        // Log OpenAI API response status
+        console.log('OpenAI API response status:', response.status);
+
         if (!response.ok) {
-            const errorData = await response.text();
-            throw new Error(`OpenAI API error: ${response.status} - ${errorData}`);
+            const errorText = await response.text();
+            console.error('OpenAI API error response:', errorText);
+            return res.status(response.status).json({
+                error: 'OpenAI API error',
+                details: errorText
+            });
         }
 
-        const data = await response.json();
+        const responseText = await response.text();
+        console.log('OpenAI API response:', responseText);
+
+        let data;
+        try {
+            data = JSON.parse(responseText);
+        } catch (e) {
+            console.error('JSON parse error:', e);
+            return res.status(500).json({
+                error: 'Response parsing error',
+                details: 'Invalid JSON response from OpenAI'
+            });
+        }
+
         return res.json({ text: data.text });
 
     } catch (error) {
@@ -119,12 +152,18 @@ async function handleConvert(req, res) {
 
 async function handleTranslate(req, res) {
     if (!process.env.OPENAI_API_KEY) {
-        throw new Error('OpenAI API key not configured');
+        return res.status(500).json({
+            error: 'Server configuration error',
+            details: 'OpenAI API key not configured'
+        });
     }
 
     const { text } = req.body;
     if (!text) {
-        return res.status(400).json({ error: 'No text provided for translation' });
+        return res.status(400).json({
+            error: 'Bad request',
+            details: 'No text provided for translation'
+        });
     }
 
     try {
@@ -150,8 +189,11 @@ async function handleTranslate(req, res) {
         });
 
         if (!response.ok) {
-            const errorData = await response.text();
-            throw new Error(`Translation API error: ${response.status}`);
+            const errorText = await response.text();
+            return res.status(response.status).json({
+                error: 'Translation API error',
+                details: errorText
+            });
         }
 
         const data = await response.json();
@@ -168,12 +210,18 @@ async function handleTranslate(req, res) {
 
 async function handleEnhance(req, res) {
     if (!process.env.OPENAI_API_KEY) {
-        throw new Error('OpenAI API key not configured');
+        return res.status(500).json({
+            error: 'Server configuration error',
+            details: 'OpenAI API key not configured'
+        });
     }
 
     const { text } = req.body;
     if (!text) {
-        return res.status(400).json({ error: 'No text provided for enhancement' });
+        return res.status(400).json({
+            error: 'Bad request',
+            details: 'No text provided for enhancement'
+        });
     }
 
     try {
@@ -199,8 +247,11 @@ async function handleEnhance(req, res) {
         });
 
         if (!response.ok) {
-            const errorData = await response.text();
-            throw new Error(`Enhancement API error: ${response.status}`);
+            const errorText = await response.text();
+            return res.status(response.status).json({
+                error: 'Enhancement API error',
+                details: errorText
+            });
         }
 
         const data = await response.json();
@@ -218,11 +269,17 @@ async function handleEnhance(req, res) {
 async function handleTTS(req, res) {
     const { text, voice } = req.body;
     if (!text) {
-        return res.status(400).json({ error: 'No text provided for TTS' });
+        return res.status(400).json({
+            error: 'Bad request',
+            details: 'No text provided for TTS'
+        });
     }
 
     if (!voice || !['orus', 'kore'].includes(voice)) {
-        return res.status(400).json({ error: 'Invalid voice selection' });
+        return res.status(400).json({
+            error: 'Bad request',
+            details: 'Invalid voice selection'
+        });
     }
 
     try {
