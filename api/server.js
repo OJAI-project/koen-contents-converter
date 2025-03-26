@@ -3,9 +3,6 @@ import multer from 'multer';
 import { config } from 'dotenv';
 import fetch from 'node-fetch';
 import FormData from 'form-data';
-import fs from 'fs';
-import { join } from 'path';
-import os from 'os';
 
 config();
 
@@ -44,10 +41,12 @@ export default async function handler(req, res) {
         return res.status(200).end();
     }
 
-    const path = req.url.split('/api/')[1];
+    // Extract the endpoint from the path
+    const endpoint = req.url.split('/').pop();
+    console.log('Requested endpoint:', endpoint);
 
     try {
-        switch (path) {
+        switch (endpoint) {
             case 'convert':
                 return await handleConvert(req, res);
             case 'translate':
@@ -57,7 +56,8 @@ export default async function handler(req, res) {
             case 'tts':
                 return await handleTTS(req, res);
             default:
-                return res.status(404).json({ error: 'Not found' });
+                console.log('Unknown endpoint:', endpoint);
+                return res.status(404).json({ error: 'Not found', endpoint });
         }
     } catch (error) {
         console.error('API Error:', error);
@@ -69,6 +69,8 @@ export default async function handler(req, res) {
 }
 
 async function handleConvert(req, res) {
+    console.log('Starting conversion...');
+
     if (!process.env.OPENAI_API_KEY) {
         return res.status(500).json({
             error: 'Server configuration error',
@@ -77,24 +79,23 @@ async function handleConvert(req, res) {
     }
 
     try {
-        // Handle file upload
+        console.log('Processing file upload...');
         await runMiddleware(req, res, upload.single('file'));
 
         if (!req.file) {
+            console.log('No file provided');
             return res.status(400).json({
                 error: 'Bad request',
                 details: 'No audio file provided'
             });
         }
 
-        // Log file details
-        console.log('Received file:', {
-            originalname: req.file.originalname,
+        console.log('File received:', {
+            filename: req.file.originalname,
             mimetype: req.file.mimetype,
             size: req.file.size
         });
 
-        // Create form data for OpenAI API
         const form = new FormData();
         form.append('file', req.file.buffer, {
             filename: req.file.originalname,
@@ -103,7 +104,7 @@ async function handleConvert(req, res) {
         form.append('model', 'whisper-1');
         form.append('language', 'ko');
 
-        // Make the API request
+        console.log('Making OpenAI API request...');
         const response = await fetch('https://api.openai.com/v1/audio/transcriptions', {
             method: 'POST',
             headers: {
@@ -113,32 +114,19 @@ async function handleConvert(req, res) {
             body: form
         });
 
-        // Log OpenAI API response status
         console.log('OpenAI API response status:', response.status);
 
         if (!response.ok) {
             const errorText = await response.text();
-            console.error('OpenAI API error response:', errorText);
+            console.error('OpenAI API error:', errorText);
             return res.status(response.status).json({
                 error: 'OpenAI API error',
                 details: errorText
             });
         }
 
-        const responseText = await response.text();
-        console.log('OpenAI API response:', responseText);
-
-        let data;
-        try {
-            data = JSON.parse(responseText);
-        } catch (e) {
-            console.error('JSON parse error:', e);
-            return res.status(500).json({
-                error: 'Response parsing error',
-                details: 'Invalid JSON response from OpenAI'
-            });
-        }
-
+        const data = await response.json();
+        console.log('Conversion successful');
         return res.json({ text: data.text });
 
     } catch (error) {
@@ -283,7 +271,6 @@ async function handleTTS(req, res) {
     }
 
     try {
-        // Configure the voice based on selection
         const request = {
             input: { text },
             voice: {
@@ -298,14 +285,11 @@ async function handleTTS(req, res) {
             }
         };
 
-        // Perform the text-to-speech request
         const [response] = await ttsClient.synthesizeSpeech(request);
 
-        // Set appropriate headers
         res.setHeader('Content-Type', 'audio/mpeg');
         res.setHeader('Content-Disposition', `attachment; filename="tts-${Date.now()}.mp3"`);
 
-        // Send the audio content directly
         return res.send(Buffer.from(response.audioContent));
 
     } catch (error) {
